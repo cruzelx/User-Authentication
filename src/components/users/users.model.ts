@@ -1,19 +1,54 @@
-import mongoose, { Schema } from "mongoose";
-import { IUser } from "./user.entity";
+import {
+  Entity,
+  ObjectID,
+  ObjectIdColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from "typeorm";
 
-const userSchema: Schema = new Schema<IUser>(
-  {
-    fullname: { type: String, required: true },
-    nickname: { type: String, required: true },
-    email: { type: String, required: true },
-    avatar: { type: String, required: true },
-    age: Number,
-    gender: String,
-    tokenVersion: Number,
-  },
-  {
-    timestamps: true,
-  }
-);
+import { ObjectType, Field, ID } from "type-graphql";
 
-export const User = mongoose.model<IUser>("User", userSchema);
+@ObjectType()
+@Entity()
+export class User {
+  @Field(() => ID)
+  @ObjectIdColumn()
+  id: string;
+
+  @Field()
+  @Column()
+  fullname: string;
+
+  @Field()
+  @Column()
+  nickname: string;
+
+  @Field()
+  @Column()
+  email: string;
+
+  @Field()
+  @Column()
+  avatar: string;
+
+  @Field()
+  @Column({ nullable: true })
+  age: number;
+
+  @Field()
+  @Column({ nullable: true })
+  gender: string;
+
+  @Field()
+  @Column()
+  tokenVersion: number;
+
+  @Field()
+  @CreateDateColumn({ type: "timestamp" })
+  createdAt: string;
+
+  @Field()
+  @UpdateDateColumn({ type: "timestamp" })
+  updatedAt: string;
+}

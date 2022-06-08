@@ -4,6 +4,7 @@ import http from "http";
 import _ from "lodash";
 import { ApolloServer } from "apollo-server-express";
 import { ApolloServerPluginDrainHttpServer } from "apollo-server-core";
+import { mongoDataSource } from "./config/mongo.datasource";
 
 // remove later
 import { userSchema } from "./components/users/users.schema";
@@ -13,6 +14,15 @@ dotenv.config();
 const { SERVER_PORT } = process.env;
 
 const bootstrap = async (typeDefs: any, resolvers: any): Promise<void> => {
+  mongoDataSource
+    .initialize()
+    .then(() => {
+      console.log(`connected to mongodb database`);
+    })
+    .catch((error) => {
+      console.log(`error connecting to database`);
+      process.exit(1);
+    });
   const httpServer = http.createServer(app);
   const apolloServer = new ApolloServer({
     typeDefs,

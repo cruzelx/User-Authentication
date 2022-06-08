@@ -1,17 +1,15 @@
-import { IUser } from "./user.entity";
+import { mongoDataSource } from "../../config/mongo.datasource";
 import { User } from "./users.model";
+
+const userRepository = mongoDataSource.getMongoRepository(User);
 
 export const userResolver = {
   Query: {
-    users: async (): Promise<IUser[]> => {
+    users: async (): Promise<User[]> => {
       try {
-        console.log("inside resolver");
-        const users = await User.find();
-        console.log("inside resolver");
-        console.log(users);
-        return users;
+        return await userRepository.find();
       } catch (error) {
-        console.log(error);
+        throw error;
       }
     },
   },
