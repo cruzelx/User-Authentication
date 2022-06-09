@@ -7,9 +7,8 @@ import { ApolloServerPluginDrainHttpServer } from "apollo-server-core";
 import { mongoDataSource } from "./config/mongo.datasource";
 
 // remove later
-import { userSchema } from "./components/users/users.schema";
 import { UserResolver } from "./components/users/users.resolver";
-import { buildSchema, BuildSchemaOptions } from "type-graphql";
+import { buildSchema } from "type-graphql";
 dotenv.config();
 
 const { SERVER_PORT } = process.env;
