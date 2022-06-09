@@ -8,25 +8,27 @@ import { mongoDataSource } from "./config/mongo.datasource";
 
 // remove later
 import { userSchema } from "./components/users/users.schema";
-import { userResolver } from "./components/users/users.resolver";
+import { UserResolver } from "./components/users/users.resolver";
+import { buildSchema, BuildSchemaOptions } from "type-graphql";
 dotenv.config();
 
 const { SERVER_PORT } = process.env;
 
-const bootstrap = async (typeDefs: any, resolvers: any): Promise<void> => {
+const bootstrap = async (resolver: any): Promise<void> => {
   mongoDataSource
     .initialize()
     .then(() => {
       console.log(`connected to mongodb database`);
     })
     .catch((error) => {
-      console.log(`error connecting to database`);
+      console.log(`error connecting to database stack trace: ${error}`);
       process.exit(1);
     });
   const httpServer = http.createServer(app);
   const apolloServer = new ApolloServer({
-    typeDefs,
-    resolvers,
+    schema: await buildSchema({
+      resolvers: [resolver],
+    }),
     csrfPrevention: true,
     plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
   });
@@ -43,7 +45,4 @@ const bootstrap = async (typeDefs: any, resolvers: any): Promise<void> => {
   );
 };
 
-let typeDefs = _.merge(userSchema);
-let resolvers = [userResolver];
-
-bootstrap(typeDefs, resolvers);
+bootstrap(UserResolver);

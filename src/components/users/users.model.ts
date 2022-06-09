@@ -1,16 +1,16 @@
 import {
   Entity,
-  ObjectID,
   ObjectIdColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  Index,
 } from "typeorm";
 
-import { ObjectType, Field, ID } from "type-graphql";
+import { ObjectType, Field, ID, Int } from "type-graphql";
 
 @ObjectType()
-@Entity()
+@Entity("User")
 export class User {
   @Field(() => ID)
   @ObjectIdColumn()
@@ -25,6 +25,7 @@ export class User {
   nickname: string;
 
   @Field()
+  @Index({ unique: true })
   @Column()
   email: string;
 
@@ -32,15 +33,15 @@ export class User {
   @Column()
   avatar: string;
 
-  @Field()
+  @Field((type) => Int, { nullable: true })
   @Column({ nullable: true })
   age: number;
 
-  @Field()
+  @Field({ nullable: true })
   @Column({ nullable: true })
   gender: string;
 
-  @Field()
+  @Field((type) => Int)
   @Column()
   tokenVersion: number;
 
