@@ -2,11 +2,11 @@ version: '3'
 
 services:
   backend_app:
-    container_name: "docker-mongo-node"
+    # container_name: "docker-mongo-node"
     restart: "always"
     build: .
-    ports:
-      - 8080:8080
+    # ports:
+    #   - 8080:8080
     links:
       - "mongo"
   mongo:
@@ -16,5 +16,13 @@ services:
       - 27017:27017
     volumes:
       - data:/data/db
+  nginx:
+    image: "nginx"
+    volumes:
+      - ./conf.d:/etc/nginx/conf.d
+    depends_on:
+      - backend_app
+    ports:
+      - 8080:3000
 volumes:
   data:

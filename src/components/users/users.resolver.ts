@@ -2,6 +2,7 @@ import { Resolver, Query, Mutation, Arg } from "type-graphql";
 import { mongoDataSource } from "../../config/mongo.datasource";
 import { CreateUserInputDto } from "./dto/create-user.dto";
 import { User } from "./users.model";
+import os from "os";
 
 const userRepository = mongoDataSource.getMongoRepository(User);
 
