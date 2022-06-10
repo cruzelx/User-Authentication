@@ -3,6 +3,7 @@ import { mongoDataSource } from "../../config/mongo.datasource";
 import { CreateUserInputDto } from "./dto/create-user.dto";
 import { User } from "./users.model";
 import bcrypt from "bcryptjs";
+import { genereateNickname } from "../../utisl/generate-nick-name.util";
 
 const userRepository = mongoDataSource.getMongoRepository(User);
 
@@ -23,10 +24,17 @@ export class UserResolver {
   ): Promise<Boolean> {
     try {
       const { password } = userInput;
+      ``;
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
-      await userRepository.save({ ...userInput, password: hashedPassword });
+      const nickname = genereateNickname();
+
+      await userRepository.save({
+        ...userInput,
+        password: hashedPassword,
+        nickname,
+      });
       return true;
     } catch (error) {
       throw error;

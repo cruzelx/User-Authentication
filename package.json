@@ -15,7 +15,8 @@
     "nodemailer": "^6.7.5",
     "remove": "^0.1.5",
     "type-graphql": "^1.1.1",
-    "typeorm": "^0.3.6"
+    "typeorm": "^0.3.6",
+    "unique-names-generator": "^4.7.1"
   },
   "name": "user-authentication",
   "description": "An effective graphql implementation of login, signup, forget password, email verification and many more",
