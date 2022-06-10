@@ -6,6 +6,8 @@ import bcrypt from "bcryptjs";
 import { genereateNickname } from "../../utils/generate-nick-name.util";
 import { generateAvatar } from "../../utils/generate-avatar.utils";
 import { UserInputError } from "apollo-server-core";
+import crypto from "crypto";
+import { sendRegistrationToken } from "../../utils/mail-service.utils";
 
 const userRepository = mongoDataSource.getMongoRepository(User);
 
@@ -28,12 +30,13 @@ export class UserResolver {
       let { password, avatar, email } = userInput;
 
       const user = await userRepository.findOne({
-        where:{email}
-      })
-      
-      if(user) throw new UserInputError('User already exists. Try logging in.')
+        where: { email },
+      });
 
-      const salt = await bcrypt.genSalt(10);
+      if (user)
+        throw new UserInputError("User already exists. Try logging in.");
+
+      const salt = await bcrypt.genSalt(12);
       const hashedPassword = await bcrypt.hash(password, salt);
 
       const nickname = genereateNickname();
@@ -42,12 +45,17 @@ export class UserResolver {
         avatar = await generateAvatar(email);
       }
 
-      await userRepository.save({
+      userRepository.save({
         ...userInput,
         password: hashedPassword,
         nickname,
         avatar,
       });
+
+      // send registration tokent to email
+      const randomToken = crypto.randomBytes(4).toString("hex");
+
+      sendRegistrationToken(email, randomToken);
       return true;
     } catch (error) {
       throw error;
