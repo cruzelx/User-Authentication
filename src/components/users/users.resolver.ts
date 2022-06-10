@@ -5,6 +5,7 @@ import { User } from "./users.model";
 import bcrypt from "bcryptjs";
 import { genereateNickname } from "../../utils/generate-nick-name.util";
 import { generateAvatar } from "../../utils/generate-avatar.utils";
+import { UserInputError } from "apollo-server-core";
 
 const userRepository = mongoDataSource.getMongoRepository(User);
 
@@ -25,6 +26,12 @@ export class UserResolver {
   ): Promise<Boolean> {
     try {
       let { password, avatar, email } = userInput;
+
+      const user = await userRepository.findOne({
+        where:{email}
+      })
+      
+      if(user) throw new UserInputError('User already exists. Try logging in.')
 
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
