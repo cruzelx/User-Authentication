@@ -14,10 +14,15 @@ export class CreateUserInputDto {
   fullname: string;
 
   @Field()
-  @Matches("^/(?=.*d)(?=.*W+)(?=.*[a-z])(?=.*[A-Z]).{8,}/$", undefined, {
-    message:
-      "Invalid Password Format. Please enter atleast one capital, one small, one numeric and one symbol character. The minimum length of the password is 8",
-  })
+  @Matches(
+    new RegExp("(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])(?=.{8,})")
+      .source,
+    undefined,
+    {
+      message:
+        "Invalid Password Format. Please enter atleast one capital, one small, one numeric and one symbol character. The minimum length of the password is 8",
+    }
+  )
   password: string;
 
   @Field()
