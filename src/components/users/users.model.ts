@@ -29,6 +29,9 @@ export class User {
   @Column()
   email: string;
 
+  @Column()
+  password: string;
+
   @Field()
   @Column()
   avatar: string;
@@ -41,7 +44,6 @@ export class User {
   @Column({ nullable: true })
   gender: string;
 
-  @Field((type) => Int)
   @Column()
   tokenVersion: number;
 
