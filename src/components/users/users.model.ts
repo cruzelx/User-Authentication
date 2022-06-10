@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  BeforeInsert,
 } from "typeorm";
 
 import { ObjectType, Field, ID, Int } from "type-graphql";
@@ -44,8 +45,18 @@ export class User {
   @Column({ nullable: true })
   gender: string;
 
-  @Column()
+  @Column({ default: 0 })
   tokenVersion: number;
+
+  @Column({ nullable: true })
+  registrationToken?: string;
+
+  @Column({ nullable: true })
+  registrationId?: string;
+
+  @Index({ expireAfterSeconds: 3600 })
+  @Column({ default: new Date(), nullable: true })
+  registeredAt?: Date;
 
   @Field()
   @CreateDateColumn({ type: "timestamp" })
@@ -54,4 +65,9 @@ export class User {
   @Field()
   @UpdateDateColumn({ type: "timestamp" })
   updatedAt: string;
+
+  @BeforeInsert()
+  setDefaults() {
+    this.registeredAt = new Date();
+  }
 }

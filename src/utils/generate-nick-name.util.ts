@@ -13,6 +13,6 @@ const config: Config = {
   style: "capital",
 };
 
-export const genereateNickname = () => {
+export const generateNickname = () => {
   return uniqueNamesGenerator(config);
 };

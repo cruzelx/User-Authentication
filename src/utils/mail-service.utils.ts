@@ -3,7 +3,11 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-export const sendRegistrationToken = async (email: string, token: string) => {
+export const sendRegistrationToken = async (
+  email: string,
+  token: string,
+  id: string
+) => {
   let transporter = nodemailer.createTransport({
     host: "smtp.ethereal.email",
     port: 587,
@@ -18,7 +22,7 @@ export const sendRegistrationToken = async (email: string, token: string) => {
     from: "foo@gmail.com",
     to: `${email}`,
     subject: "Registration token",
-    html: `Your registration token is <br /><h1>${token}</h1> . Please donot share with anyone else.`,
+    html: `Your registration Id is <h1>${id}</h1><br />Your registration token is <br /><h1>${token}</h1> . Please donot share with anyone else.`,
   });
 
   console.log("emai message id: ", emailInfo.messageId);
