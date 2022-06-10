@@ -5,9 +5,14 @@ import { User } from "./users.model";
 import bcrypt from "bcryptjs";
 import { generateNickname } from "../../utils/generate-nick-name.util";
 import { generateAvatar } from "../../utils/generate-avatar.utils";
-import { ApolloError, UserInputError } from "apollo-server-core";
+import {
+  ApolloError,
+  UserInputError,
+  AuthenticationError,
+} from "apollo-server-core";
 import crypto from "crypto";
 import { sendRegistrationToken } from "../../utils/mail-service.utils";
+import { VerifyRegistrationInputDto } from "./dto/verify-registration.dto";
 
 const userRepository = mongoDataSource.getMongoRepository(User);
 
@@ -65,7 +70,31 @@ export class UserResolver {
 
       // send registration tokent to email
 
-      sendRegistrationToken(email, registrationToken,registrationId);
+      sendRegistrationToken(email, registrationToken, registrationId);
+      return true;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Mutation(() => Boolean)
+  async verifyRegistration(
+    @Arg("data") verificationInput: VerifyRegistrationInputDto
+  ) {
+    try {
+      const { registrationId, registrationToken } = verificationInput;
+
+      const user = await userRepository.findOneBy({ registrationId });
+
+      if (!user) throw new UserInputError("Invalid input from user");
+
+      if (user.registrationToken !== registrationToken)
+        throw new AuthenticationError("Unauthorized activity detected");
+
+      userRepository.updateOne(
+        { _id: user.id },
+        { $unset: { registrationId: 1, registrationToken: 1, registeredAt: 1 } }
+      );
       return true;
     } catch (error) {
       throw error;
