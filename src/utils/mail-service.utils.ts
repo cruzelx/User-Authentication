@@ -3,12 +3,8 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-export const sendRegistrationToken = async (
-  email: string,
-  token: string,
-  id: string
-) => {
-  let transporter = nodemailer.createTransport({
+const createTransporter = () => {
+  return nodemailer.createTransport({
     host: "smtp.ethereal.email",
     port: 587,
     secure: false,
@@ -17,6 +13,14 @@ export const sendRegistrationToken = async (
       pass: process.env.NODEMAILER_PASSWORD,
     },
   });
+};
+
+export const sendRegistrationToken = async (
+  email: string,
+  token: string,
+  id: string
+) => {
+  let transporter = createTransporter();
 
   let emailInfo = await transporter.sendMail({
     from: "foo@gmail.com",
@@ -24,9 +28,19 @@ export const sendRegistrationToken = async (
     subject: "Registration token",
     html: `Your registration Id is <h1>${id}</h1><br />Your registration token is <br /><h1>${token}</h1> . Please donot share with anyone else.`,
   });
+};
 
-  console.log("emai message id: ", emailInfo.messageId);
-  console.log("content: ", emailInfo.response);
+export const sendChangePasswordToken = async (
+  email: string,
+  token: string,
+  id: string
+) => {
+  let transporter = createTransporter();
 
-  console.log("email url: ", nodemailer.getTestMessageUrl(emailInfo));
+  let emailInfo = await transporter.sendMail({
+    from: "foo@gmail.com",
+    to: `${email}`,
+    subject: "Change password token",
+    html: `Your  ID is <h1>${id}</h1><br />Your token is <br /><h1>${token}</h1> . Please donot share with anyone else.`,
+  });
 };
