@@ -1,10 +1,4 @@
-import {
-  Resolver,
-  Query,
-  Mutation,
-  Arg,
-  UnauthorizedError,
-} from "type-graphql";
+import { Resolver, Query, Mutation, Arg, Args, Ctx } from "type-graphql";
 import { mongoDataSource } from "../../config/mongo.datasource";
 import { CreateUserInputDto } from "./dto/create-user.dto";
 import { User } from "./users.model";
@@ -25,6 +19,7 @@ import {
   generateRefreshToken,
 } from "../../utils/token-helper.utils";
 import { LoginResponseDto } from "./dto/login-response.dto";
+import { ICustomContext } from "../../shared/context.interface";
 
 const userRepository = mongoDataSource.getMongoRepository(User);
 
@@ -40,7 +35,7 @@ export class UserResolver {
   }
 
   @Query(() => LoginResponseDto)
-  async login(@Arg("data") loginInput: LoginUserInputDto) {
+  async login(@Args() loginInput: LoginUserInputDto) {
     try {
       const { email, password } = loginInput;
       const user = await userRepository.findOneBy({ email });
@@ -67,30 +62,37 @@ export class UserResolver {
       });
 
       const refreshTokenData: string = crypto.randomBytes(10).toString("hex");
-      const refreshTokenVersion: number = user.refreshTokenVersion + 1;
 
       const refreshToken = generateRefreshToken({
         sub: refreshTokenData,
         iat: Date.now(),
         iss: process.env.JWT_ISSUER,
         aud: process.env.JWT_AUDIENCE,
-        tokenVersion: refreshTokenVersion,
+        tokenVersion: user.refreshTokenVersion,
       });
-
-      userRepository.updateOne(
-        {
-          _id: user.id,
-        },
-        {
-          $set: { refreshTokenVersion },
-        }
-      );
 
       return {
         user,
         accessToken,
         refreshToken,
       };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Query(() => Boolean)
+  async logout(@Arg("id") userId: string) {
+    try {
+      await userRepository.updateOne(
+        {
+          id: userId,
+        },
+        { $inc: { refreshTokenVersion: 1 } }
+      );
+
+      // TODO: Erase whitelist of access token from redis
+      return true;
     } catch (error) {
       throw error;
     }

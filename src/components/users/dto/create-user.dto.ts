@@ -15,7 +15,7 @@ export class CreateUserInputDto {
 
   @Field()
   @Matches(
-    new RegExp("(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])(?=.{8,})")
+    new RegExp("(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])(?=.{8,50})")
       .source,
     undefined,
     {

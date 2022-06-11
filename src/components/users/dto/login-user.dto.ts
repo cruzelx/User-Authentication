@@ -1,10 +1,13 @@
-import { Field, InputType } from "type-graphql";
+import { IsEmail, Length } from "class-validator";
+import { ArgsType, Field, InputType } from "type-graphql";
 
-@InputType()
+@ArgsType()
 export class LoginUserInputDto {
   @Field()
+  @IsEmail()
   email: string;
 
-  @Field()
+  @Field({})
+  @Length(8, 50)
   password: string;
 }
