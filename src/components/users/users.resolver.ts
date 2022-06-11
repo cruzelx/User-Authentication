@@ -44,6 +44,10 @@ export class UserResolver {
     try {
       const { email, password } = loginInput;
       const user = await userRepository.findOneBy({ email });
+      if (user?.registrationToken)
+        throw new ApolloError(
+          "User verification is incomplete. Please check your email for verification credentials"
+        );
       if (!user)
         throw new UserInputError(
           "Login credentials do not match any records in the system. Please use correct information or register a new account"
@@ -57,18 +61,20 @@ export class UserResolver {
 
       const accessToken: string = generateAccessToken({
         sub: user.id,
-        iat: new Date(),
+        iat: Date.now(),
         iss: process.env.JWT_ISSUER,
         aud: process.env.JWT_AUDIENCE,
       });
 
       const refreshTokenData: string = crypto.randomBytes(10).toString("hex");
+      const refreshTokenVersion: number = user.refreshTokenVersion + 1;
 
       const refreshToken = generateRefreshToken({
         sub: refreshTokenData,
-        iat: new Date(),
+        iat: Date.now(),
         iss: process.env.JWT_ISSUER,
         aud: process.env.JWT_AUDIENCE,
+        tokenVersion: refreshTokenVersion,
       });
 
       userRepository.updateOne(
@@ -76,7 +82,7 @@ export class UserResolver {
           _id: user.id,
         },
         {
-          refreshTokenVersion: user.refreshTokenVersion++,
+          $set: { refreshTokenVersion },
         }
       );
 
@@ -156,7 +162,10 @@ export class UserResolver {
 
       userRepository.updateOne(
         { _id: user.id },
-        { $unset: { registrationId: 1, registrationToken: 1, registeredAt: 1 } }
+        {
+          $unset: { registrationId: 1, registrationToken: 1, registeredAt: 1 },
+          $set: { registrationVerifiedAt: new Date() },
+        }
       );
       return true;
     } catch (error) {

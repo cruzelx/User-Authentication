@@ -58,6 +58,9 @@ export class User {
   @Column({ default: new Date(), nullable: true })
   registeredAt?: Date;
 
+  @Column({ nullable: true })
+  registrationVerifiedAt?: Date;
+
   @Field()
   @CreateDateColumn({ type: "timestamp" })
   createdAt: string;
