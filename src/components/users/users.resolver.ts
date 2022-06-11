@@ -20,6 +20,11 @@ import crypto from "crypto";
 import { sendRegistrationToken } from "../../utils/mail-service.utils";
 import { VerifyRegistrationInputDto } from "./dto/verify-registration.dto";
 import { LoginUserInputDto } from "./dto/login-user.dto";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+} from "../../utils/token-helper.utils";
+import { LoginResponseDto } from "./dto/login-response.dto";
 
 const userRepository = mongoDataSource.getMongoRepository(User);
 
@@ -34,23 +39,52 @@ export class UserResolver {
     }
   }
 
-  @Query(() => Boolean)
+  @Query(() => LoginResponseDto)
   async login(@Arg("data") loginInput: LoginUserInputDto) {
     try {
       const { email, password } = loginInput;
       const user = await userRepository.findOneBy({ email });
       if (!user)
         throw new UserInputError(
-          "Login credentials donot match any records in the system. Please use correct information or register a new account"
+          "Login credentials do not match any records in the system. Please use correct information or register a new account"
         );
       const isValidPassword = await bcrypt.compare(password, user.password);
 
       if (!isValidPassword)
         throw new UserInputError(
-          "Incorrect password. Please use correct credentials"
+          "Incorrect password. Please use correct credentials."
         );
 
-        
+      const accessToken: string = generateAccessToken({
+        sub: user.id,
+        iat: new Date(),
+        iss: process.env.JWT_ISSUER,
+        aud: process.env.JWT_AUDIENCE,
+      });
+
+      const refreshTokenData: string = crypto.randomBytes(10).toString("hex");
+
+      const refreshToken = generateRefreshToken({
+        sub: refreshTokenData,
+        iat: new Date(),
+        iss: process.env.JWT_ISSUER,
+        aud: process.env.JWT_AUDIENCE,
+      });
+
+      userRepository.updateOne(
+        {
+          _id: user.id,
+        },
+        {
+          refreshTokenVersion: user.refreshTokenVersion++,
+        }
+      );
+
+      return {
+        user,
+        accessToken,
+        refreshToken,
+      };
     } catch (error) {
       throw error;
     }

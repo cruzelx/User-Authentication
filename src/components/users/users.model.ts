@@ -46,7 +46,7 @@ export class User {
   gender: string;
 
   @Column({ default: 0 })
-  tokenVersion: number;
+  refreshTokenVersion: number;
 
   @Column({ nullable: true })
   registrationToken?: string;
@@ -69,5 +69,6 @@ export class User {
   @BeforeInsert()
   setDefaults() {
     this.registeredAt = new Date();
+    this.refreshTokenVersion = 0;
   }
 }
