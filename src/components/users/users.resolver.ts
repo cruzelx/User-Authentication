@@ -1,4 +1,10 @@
-import { Resolver, Query, Mutation, Arg } from "type-graphql";
+import {
+  Resolver,
+  Query,
+  Mutation,
+  Arg,
+  UnauthorizedError,
+} from "type-graphql";
 import { mongoDataSource } from "../../config/mongo.datasource";
 import { CreateUserInputDto } from "./dto/create-user.dto";
 import { User } from "./users.model";
@@ -13,6 +19,7 @@ import {
 import crypto from "crypto";
 import { sendRegistrationToken } from "../../utils/mail-service.utils";
 import { VerifyRegistrationInputDto } from "./dto/verify-registration.dto";
+import { LoginUserInputDto } from "./dto/login-user.dto";
 
 const userRepository = mongoDataSource.getMongoRepository(User);
 
@@ -22,6 +29,28 @@ export class UserResolver {
   async users() {
     try {
       return await userRepository.find();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Query(() => Boolean)
+  async login(@Arg("data") loginInput: LoginUserInputDto) {
+    try {
+      const { email, password } = loginInput;
+      const user = await userRepository.findOneBy({ email });
+      if (!user)
+        throw new UserInputError(
+          "Login credentials donot match any records in the system. Please use correct information or register a new account"
+        );
+      const isValidPassword = await bcrypt.compare(password, user.password);
+
+      if (!isValidPassword)
+        throw new UserInputError(
+          "Incorrect password. Please use correct credentials"
+        );
+
+        
     } catch (error) {
       throw error;
     }
@@ -80,7 +109,7 @@ export class UserResolver {
   @Mutation(() => Boolean)
   async verifyRegistration(
     @Arg("data") verificationInput: VerifyRegistrationInputDto
-  ) {
+  ): Promise<Boolean> {
     try {
       const { registrationId, registrationToken } = verificationInput;
 
