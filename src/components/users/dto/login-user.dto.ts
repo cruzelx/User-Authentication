@@ -1,5 +1,5 @@
-import { IsEmail, Length } from "class-validator";
-import { ArgsType, Field, InputType } from "type-graphql";
+import { IsEmail, Length, Matches } from "class-validator";
+import { ArgsType, Field } from "type-graphql";
 
 @ArgsType()
 export class LoginUserInputDto {

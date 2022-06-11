@@ -18,12 +18,14 @@ import { LoginUserInputDto } from "./dto/login-user.dto";
 import {
   generateAccessToken,
   generateRefreshToken,
+  verifyAccessToken,
   verifyRefreshToken,
 } from "../../utils/token-helper.utils";
 import { LoginResponseDto } from "./dto/login-response.dto";
 import { ICustomContext } from "../../shared/context.interface";
 import { NewTokensResponseDto } from "./dto/new-tokens-response.dto";
 import { ObjectId } from "mongodb";
+import { ChangePasswordInputDto } from "./dto/change-password.dto";
 
 const userRepository = mongoDataSource.getMongoRepository(User);
 
@@ -44,6 +46,7 @@ export class UserResolver {
   ): Promise<LoginResponseDto> {
     try {
       const { email, password } = loginInput;
+
       const user = await userRepository.findOneBy({ email });
       if (user?.registrationToken)
         throw new ApolloError(
@@ -53,6 +56,7 @@ export class UserResolver {
         throw new UserInputError(
           "Login credentials do not match any records in the system. Please use correct information or register a new account"
         );
+
       const isValidPassword = await bcrypt.compare(password, user.password);
 
       if (!isValidPassword)
@@ -168,7 +172,7 @@ export class UserResolver {
       if (user)
         throw new UserInputError("User already exists. Try logging in.");
 
-      const salt = await bcrypt.genSalt(12);
+      const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
       const nickname = generateNickname();
@@ -225,4 +229,50 @@ export class UserResolver {
       throw error;
     }
   }
+
+  @Mutation(() => Boolean)
+  async changePassword(
+    @Arg("data") changePasswordInput: ChangePasswordInputDto,
+    @Ctx() { req }: ICustomContext
+  ) {
+    try {
+      const { currentPassword, newPassword } = changePasswordInput;
+
+      const auth = req.headers.authorization;
+      const token = auth && auth.split(" ")[1];
+
+      if (!token) throw new ForbiddenError("Unauthorized access is forbidden");
+
+      const { sub } = verifyAccessToken(token);
+
+      let id = new ObjectId(sub);
+
+      const user = await userRepository.findOneBy({
+        _id: id,
+      });
+
+      if (!user) throw new ForbiddenError("Unauthorized access is prohibited");
+
+      const isValidCurrentPassword = await bcrypt.compare(
+        currentPassword,
+        user.password
+      );
+
+      if (!isValidCurrentPassword)
+        throw new AuthenticationError("Invalid current password");
+
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+      await userRepository.updateOne(
+        { _id: id },
+        { $set: { password: hashedPassword } }
+      );
+      return true;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  
 }
