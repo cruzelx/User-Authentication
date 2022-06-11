@@ -9,6 +9,7 @@ import {
   ApolloError,
   UserInputError,
   AuthenticationError,
+  ForbiddenError,
 } from "apollo-server-core";
 import crypto from "crypto";
 import { sendRegistrationToken } from "../../utils/mail-service.utils";
@@ -17,9 +18,12 @@ import { LoginUserInputDto } from "./dto/login-user.dto";
 import {
   generateAccessToken,
   generateRefreshToken,
+  verifyRefreshToken,
 } from "../../utils/token-helper.utils";
 import { LoginResponseDto } from "./dto/login-response.dto";
 import { ICustomContext } from "../../shared/context.interface";
+import { NewTokensResponseDto } from "./dto/new-tokens-response.dto";
+import { ObjectId } from "mongodb";
 
 const userRepository = mongoDataSource.getMongoRepository(User);
 
@@ -35,7 +39,9 @@ export class UserResolver {
   }
 
   @Query(() => LoginResponseDto)
-  async login(@Args() loginInput: LoginUserInputDto) {
+  async login(
+    @Args() loginInput: LoginUserInputDto
+  ): Promise<LoginResponseDto> {
     try {
       const { email, password } = loginInput;
       const user = await userRepository.findOneBy({ email });
@@ -54,20 +60,17 @@ export class UserResolver {
           "Incorrect password. Please use correct credentials."
         );
 
-      const accessToken: string = generateAccessToken({
+      const commonTokenClaims = {
         sub: user.id,
         iat: Date.now(),
         iss: process.env.JWT_ISSUER,
         aud: process.env.JWT_AUDIENCE,
-      });
+      };
 
-      const refreshTokenData: string = crypto.randomBytes(10).toString("hex");
+      const accessToken: string = generateAccessToken(commonTokenClaims);
 
-      const refreshToken = generateRefreshToken({
-        sub: refreshTokenData,
-        iat: Date.now(),
-        iss: process.env.JWT_ISSUER,
-        aud: process.env.JWT_AUDIENCE,
+      const refreshToken: string = generateRefreshToken({
+        ...commonTokenClaims,
         tokenVersion: user.refreshTokenVersion,
       });
 
@@ -93,6 +96,54 @@ export class UserResolver {
 
       // TODO: Erase whitelist of access token from redis
       return true;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Query(() => NewTokensResponseDto)
+  async refreshToken(
+    @Ctx() { req }: ICustomContext
+  ): Promise<NewTokensResponseDto> {
+    try {
+      const auth = req.headers["x-refresh-token"] as string;
+      const token = auth && auth.split(" ")[1];
+
+      if (!token) throw new ForbiddenError("Unauthorized access is prohibited");
+
+      const { sub, tokenVersion } = verifyRefreshToken(token);
+
+      let id = new ObjectId(sub);
+      const user = await userRepository.findOneBy({
+        _id: id,
+      });
+
+      if (!user) throw new AuthenticationError("Bad request");
+
+      if (user.refreshTokenVersion !== tokenVersion)
+        throw new ForbiddenError("Invalid token provided");
+
+      await userRepository.updateOne(
+        { _id: id },
+        { $inc: { refreshTokenVersion: 1 } }
+      );
+
+      const commonTokenClaims = {
+        sub: user?.id,
+        iat: Date.now(),
+        iss: process.env.JWT_ISSUER,
+        aud: process.env.JWT_AUDIENCE,
+      };
+      const refreshToken = generateRefreshToken({
+        ...commonTokenClaims,
+        tokenVersion: user.refreshTokenVersion + 1,
+      });
+
+      const accessToken = generateAccessToken(commonTokenClaims);
+      return {
+        refreshToken,
+        accessToken,
+      };
     } catch (error) {
       throw error;
     }

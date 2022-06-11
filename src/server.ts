@@ -30,7 +30,7 @@ const bootstrap = async (resolver: any): Promise<void> => {
     }),
     csrfPrevention: true,
     plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
-    context: ({ req, res }) => {
+    context: ({ req }) => {
       return { req };
     },
   });
