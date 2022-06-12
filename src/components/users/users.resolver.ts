@@ -27,7 +27,7 @@ import {
 import { LoginResponseDto } from "./dto/login-response.dto";
 import { ICustomContext } from "../../shared/context.interface";
 import { NewTokensResponseDto } from "./dto/new-tokens-response.dto";
-import { ObjectId } from "mongodb";
+import mongoose from "mongoose";
 import { ChangePasswordInputDto } from "./dto/change-password.dto";
 
 const userRepository = mongoDataSource.getMongoRepository(User);
@@ -120,7 +120,7 @@ export class UserResolver {
 
       const { sub, tokenVersion } = verifyRefreshToken(token);
 
-      let id = new ObjectId(sub);
+      let id = new mongoose.Types.ObjectId(sub);
       const user = await userRepository.findOneBy({
         _id: id,
       });
@@ -248,7 +248,7 @@ export class UserResolver {
 
       const { sub } = verifyAccessToken(token);
 
-      let id = new ObjectId(sub);
+      let id = new mongoose.Types.ObjectId(sub);
 
       const user = await userRepository.findOneBy({
         _id: id,
