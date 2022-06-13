@@ -62,3 +62,7 @@ export const verifyRefreshToken = (token: string): RefreshJWTPayload => {
     complete: false,
   }) as any as RefreshJWTPayload;
 };
+
+export const revokeAccessToken = async (jti: string) => {
+  return await redisJwtService.revoke(jti);
+};
