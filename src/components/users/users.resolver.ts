@@ -3,7 +3,7 @@ import { mongoDataSource } from "../../config/mongo.datasource";
 import { CreateUserInputDto } from "./dto/create-user.dto";
 import { User } from "./users.model";
 import bcrypt from "bcryptjs";
-import { generateNickname } from "../../utils/generate-nick-name.util";
+import { generateNickname } from "../../utils/generate-nick-name.utils";
 import { generateAvatar } from "../../utils/generate-avatar.utils";
 import {
   ApolloError,
@@ -70,11 +70,9 @@ export class UserResolver {
       const commonTokenClaims = {
         sub: user.id,
         iat: Date.now(),
-        iss: process.env.JWT_ISSUER,
-        aud: process.env.JWT_AUDIENCE,
       };
 
-      const accessToken: string = generateAccessToken(commonTokenClaims);
+      const accessToken: string = await generateAccessToken(commonTokenClaims);
 
       const refreshToken: string = generateRefreshToken({
         ...commonTokenClaims,
@@ -146,7 +144,7 @@ export class UserResolver {
         tokenVersion: user.refreshTokenVersion + 1,
       });
 
-      const accessToken = generateAccessToken(commonTokenClaims);
+      const accessToken = await generateAccessToken(commonTokenClaims);
       return {
         refreshToken,
         accessToken,
@@ -246,7 +244,7 @@ export class UserResolver {
 
       if (!token) throw new ForbiddenError("Unauthorized access is forbidden");
 
-      const { sub } = verifyAccessToken(token);
+      const { sub } = await verifyAccessToken(token);
 
       let id = new mongoose.Types.ObjectId(sub);
 
