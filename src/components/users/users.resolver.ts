@@ -1,4 +1,12 @@
-import { Resolver, Query, Mutation, Arg, Args, Ctx } from "type-graphql";
+import {
+  Resolver,
+  Query,
+  Mutation,
+  Arg,
+  Args,
+  Ctx,
+  UseMiddleware,
+} from "type-graphql";
 import { mongoDataSource } from "../../config/mongo.datasource";
 import { CreateUserInputDto } from "./dto/create-user.dto";
 import { User } from "./users.model";
@@ -21,19 +29,32 @@ import { LoginUserInputDto } from "./dto/login-user.dto";
 import {
   generateAccessToken,
   generateRefreshToken,
+  revokeAccessToken,
   verifyAccessToken,
   verifyRefreshToken,
 } from "../../utils/token-helper.utils";
 import { LoginResponseDto } from "./dto/login-response.dto";
-import { ICustomContext } from "../../shared/context.interface";
+import { ICustomContext } from "../../types/context.interface";
 import { NewTokensResponseDto } from "./dto/new-tokens-response.dto";
 import mongoose from "mongoose";
 import { ChangePasswordInputDto } from "./dto/change-password.dto";
+import { Auth } from "../../middlewares/auth.middlewares";
 
 const userRepository = mongoDataSource.getMongoRepository(User);
 
 @Resolver()
 export class UserResolver {
+  @UseMiddleware(Auth)
+  @Query(() => User, { nullable: true })
+  async me(@Ctx() { userPayload }: ICustomContext) {
+    try {
+      const id = new mongoose.Types.ObjectId(userPayload.sub);
+      return await userRepository.findOneBy({ _id: id });
+    } catch (error) {
+      throw error;
+    }
+  }
+
   @Query(() => [User])
   async users() {
     try {
@@ -90,16 +111,20 @@ export class UserResolver {
   }
 
   @Query(() => Boolean)
-  async logout(@Arg("id") userId: string) {
+  @UseMiddleware(Auth)
+  async logout(
+    @Arg("id") userId: string,
+    @Ctx() { userPayload }: ICustomContext
+  ) {
     try {
+      const id = new mongoose.Types.ObjectId(userId);
       await userRepository.updateOne(
         {
-          id: userId,
+          _id: id,
         },
         { $inc: { refreshTokenVersion: 1 } }
       );
-
-      // TODO: Erase whitelist of access token from redis
+      await revokeAccessToken(userPayload.jti);
       return true;
     } catch (error) {
       throw error;
@@ -136,8 +161,6 @@ export class UserResolver {
       const commonTokenClaims = {
         sub: user?.id,
         iat: Date.now(),
-        iss: process.env.JWT_ISSUER,
-        aud: process.env.JWT_AUDIENCE,
       };
       const refreshToken = generateRefreshToken({
         ...commonTokenClaims,
@@ -232,21 +255,15 @@ export class UserResolver {
   }
 
   @Mutation(() => Boolean)
+  @UseMiddleware(Auth)
   async changePassword(
     @Arg("data") changePasswordInput: ChangePasswordInputDto,
-    @Ctx() { req }: ICustomContext
+    @Ctx() { req, userPayload }: ICustomContext
   ) {
     try {
       const { currentPassword, newPassword } = changePasswordInput;
 
-      const auth = req.headers.authorization;
-      const token = auth && auth.split(" ")[1];
-
-      if (!token) throw new ForbiddenError("Unauthorized access is forbidden");
-
-      const { sub } = await verifyAccessToken(token);
-
-      let id = new mongoose.Types.ObjectId(sub);
+      let id = new mongoose.Types.ObjectId(userPayload.sub);
 
       const user = await userRepository.findOneBy({
         _id: id,
