@@ -23,12 +23,7 @@ export class RedisJWTService {
     const decoded = jwt.decode(token, {
       json: true,
     });
-    console.log(
-      jwt.decode(token, {
-        complete: true,
-        // json: true,
-      })
-    );
+
     if (decoded?.exp) {
       const duration = Math.floor((decoded.exp - Date.now()) / 1000.0);
 
