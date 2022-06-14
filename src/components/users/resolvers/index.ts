@@ -1,4 +1,4 @@
-import { ChangePasswordInputDto } from "../dto";
+import { CreateUserMutation } from "./create-user.mutation";
 import { ChangePasswordMutation } from "./change-password.mutation";
 import { ForgetPasswordMutation } from "./forget-password.mutation";
 import { LoginQuery } from "./login.query";
@@ -9,7 +9,7 @@ import { UsersQuery } from "./users.query";
 import { VerifyRegistrationMutation } from "./verify-registration.mutation";
 
 export const UserResolver = [
-  ChangePasswordInputDto,
+  CreateUserMutation,
   ChangePasswordMutation,
   ForgetPasswordMutation,
   LoginQuery,

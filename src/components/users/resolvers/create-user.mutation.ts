@@ -2,7 +2,6 @@ import { ApolloError, UserInputError } from "apollo-server-core";
 import { Arg, Mutation, Resolver } from "type-graphql";
 import { userRepository } from "../../../config/mongo.datasource";
 import { CreateUserInputDto } from "../dto/create-user.dto";
-import { User } from "../users.model";
 import bcrypt from "bcryptjs";
 import { generateNickname } from "../../../utils/generate-nick-name.utils";
 import { generateAvatar } from "../../../utils/generate-avatar.utils";
@@ -52,7 +51,7 @@ export class CreateUserMutation {
         })
       );
 
-      // send registration tokent to email
+      // send registration token to email
 
       sendRegistrationToken(email, registrationToken, registrationId);
       return true;
