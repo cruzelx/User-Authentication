@@ -1,5 +1,9 @@
 import { DataSource } from "typeorm";
-import { User } from "../components/users/users.model";
+import { Models } from "../components/index";
+
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export const mongoDataSource: DataSource = new DataSource({
   type: "mongodb",
@@ -11,5 +15,7 @@ export const mongoDataSource: DataSource = new DataSource({
     useNewUrlParser: true,
   },
   synchronize: true,
-  entities: [User],
+  entities: [Models.user],
 });
+
+export const userRepository = mongoDataSource.getMongoRepository(Models.user);

@@ -30,7 +30,6 @@ import {
   generateAccessToken,
   generateRefreshToken,
   revokeAccessToken,
-  verifyAccessToken,
   verifyRefreshToken,
 } from "../../utils/token-helper.utils";
 import { LoginResponseDto } from "./dto/login-response.dto";
