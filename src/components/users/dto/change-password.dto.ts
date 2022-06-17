@@ -1,4 +1,6 @@
 import { Length, Matches } from "class-validator";
+import "reflect-metadata";
+
 import { ArgsType, Field, InputType } from "type-graphql";
 
 @InputType()

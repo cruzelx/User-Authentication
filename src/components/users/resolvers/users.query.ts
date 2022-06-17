@@ -1,3 +1,5 @@
+import "reflect-metadata";
+
 import { Query, Resolver } from "type-graphql";
 import { userRepository } from "../../../config/mongo.datasource";
 

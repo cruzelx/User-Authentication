@@ -1,3 +1,5 @@
+import "reflect-metadata";
+
 import { Field, InputType } from "type-graphql";
 import { IsEmail, IsEnum, IsUrl, Length, Matches } from "class-validator";
 

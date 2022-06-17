@@ -19,11 +19,14 @@ services:
       - 27017:27017
     volumes:
       - data:/data/db
+      - data:/data/configdb
   redis:
     container_name: "redis"
     image: "redis"
     ports:
       - 6379:6379
+    volumes:
+      - data:/data
   nginx:
     image: "nginx"
     volumes:

@@ -1,3 +1,5 @@
+import "reflect-metadata";
+
 import { ApolloError, UserInputError } from "apollo-server-core";
 import { Arg, Mutation, Resolver } from "type-graphql";
 import { userRepository } from "../../../config/mongo.datasource";

@@ -1,5 +1,6 @@
 import { ForbiddenError } from "apollo-server-core";
-import { MiddlewareFn, ResolverData } from "type-graphql";
+import "reflect-metadata";
+import { MiddlewareFn } from "type-graphql";
 import { ICustomContext } from "../types/context.interface";
 import { verifyAccessToken } from "../utils/token-helper.utils";
 

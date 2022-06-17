@@ -1,3 +1,5 @@
+import "reflect-metadata";
+
 import { AuthenticationError, ForbiddenError } from "apollo-server-core";
 import mongoose from "mongoose";
 import { Ctx, Query, Resolver } from "type-graphql";

@@ -7,6 +7,7 @@ import {
   Index,
   BeforeInsert,
 } from "typeorm";
+import "reflect-metadata";
 
 import { ObjectType, Field, ID, Int } from "type-graphql";
 

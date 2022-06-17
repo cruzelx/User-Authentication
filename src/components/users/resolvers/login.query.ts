@@ -1,5 +1,7 @@
+import "reflect-metadata";
+
 import { ApolloError, UserInputError } from "apollo-server-core";
-import { Args, Query } from "type-graphql";
+import { Args, Query, Resolver } from "type-graphql";
 import { userRepository } from "../../../config/mongo.datasource";
 
 import { LoginResponseDto } from "../dto/login-response.dto";
@@ -11,6 +13,7 @@ import {
   generateRefreshToken,
 } from "../../../utils/token-helper.utils";
 
+@Resolver()
 export class LoginQuery {
   @Query(() => LoginResponseDto)
   async login(

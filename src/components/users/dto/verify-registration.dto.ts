@@ -1,3 +1,5 @@
+import "reflect-metadata";
+
 import { Length } from "class-validator";
 import { Field, InputType, ObjectType } from "type-graphql";
 

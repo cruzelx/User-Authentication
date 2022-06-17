@@ -1,3 +1,5 @@
+import "reflect-metadata";
+
 import mongoose from "mongoose";
 import { Ctx, Query, Resolver, UseMiddleware } from "type-graphql";
 import { userRepository } from "../../../config/mongo.datasource";
