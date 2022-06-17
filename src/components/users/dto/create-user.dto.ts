@@ -42,4 +42,7 @@ export class CreateUserInputDto {
   @Field({ nullable: true })
   @IsEnum(Gender)
   gender: string;
+
+  @Field({ nullable: true })
+  role: string;
 }

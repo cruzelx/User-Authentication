@@ -2,12 +2,15 @@ import app from "./app";
 import dotenv from "dotenv";
 import "reflect-metadata";
 
-import { ApolloServer } from "apollo-server-express";
+import { ApolloServer, ForbiddenError } from "apollo-server-express";
 import { mongoDataSource } from "./config/mongo.datasource";
+
+import jwt from "jsonwebtoken";
 
 // remove later
 import { Resolvers } from "./components/index";
 import { buildSchema } from "type-graphql";
+import { customAuthChecker } from "./middlewares/custom-auth-checker.middleware";
 dotenv.config();
 
 const { SERVER_PORT } = process.env;
@@ -21,12 +24,21 @@ const bootstrap = async (resolvers: any): Promise<void> => {
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
       resolvers,
+      authChecker: customAuthChecker,
+      authMode: "null",
     }),
 
     csrfPrevention: true,
     // plugins: [ApolloServerPluginDrainHttpServer({ httpServer:app })],
     context: ({ req }) => {
-      return { req };
+      let userPayload = null;
+      const auth = req.headers.authorization;
+      const token = auth && auth.split(" ")[1];
+      if (token) {
+        const verifiedData = jwt.decode(token);
+        userPayload = verifiedData;
+      }
+      return { req, userPayload };
     },
   });
 

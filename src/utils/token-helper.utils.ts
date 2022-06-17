@@ -19,7 +19,9 @@ interface RefreshJWTPayload extends JWTPayload {
   tokenVersion: number;
 }
 
-interface AccessJWTPayload extends JwtPayload {}
+interface AccessJWTPayload extends JwtPayload {
+  role?: string;
+}
 
 export const generateAccessToken = async (payload: object): Promise<string> => {
   return await redisJwtService.sign(

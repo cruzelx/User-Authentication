@@ -9,7 +9,7 @@ import {
 } from "typeorm";
 import "reflect-metadata";
 
-import { ObjectType, Field, ID, Int } from "type-graphql";
+import { ObjectType, Field, ID, Int, Authorized } from "type-graphql";
 
 @ObjectType()
 @Entity("User")
@@ -31,6 +31,8 @@ export class User {
   @Column()
   email: string;
 
+  @Authorized("ADMIN")
+  @Field()
   @Column()
   password: string;
 
@@ -46,6 +48,12 @@ export class User {
   @Column({ nullable: true })
   gender: string;
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  role?: string;
+
+  @Authorized("ADMIN")
+  @Field()
   @Column({ default: 0 })
   refreshTokenVersion: number;
 

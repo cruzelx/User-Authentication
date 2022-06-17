@@ -44,7 +44,10 @@ export class LoginQuery {
         iat: Date.now(),
       };
 
-      const accessToken: string = await generateAccessToken(commonTokenClaims);
+      const accessToken: string = await generateAccessToken({
+        ...commonTokenClaims,
+        role: user.role,
+      });
 
       const refreshToken: string = generateRefreshToken({
         ...commonTokenClaims,
